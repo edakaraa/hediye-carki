@@ -1,7 +1,7 @@
 const CATEGORY_DESCRIPTIONS = {
-  Deneyim:
+  "Deneyim":
     "aktivite, etkinlik, kurs, macera veya konsept deneyim (spa günü, yemek kursu, tırmanma, konser, kaçış odası)",
-  Teknoloji:
+  "Teknoloji":
     "elektronik ürün, akıllı aksesuar, gadget veya dijital abonelik (kulaklık, akıllı saat, e-kitap okuyucu)",
   "Kişisel Bakım":
     "cilt bakımı, parfüm, spa seti, wellness ürünü veya bakım rutini hediyesi",
@@ -79,12 +79,12 @@ const callOpenRouter = async (apiKey, prompt) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
+      "Authorization": `Bearer ${apiKey}`,
       "HTTP-Referer": "https://hediye-carki.netlify.app",
       "X-Title": "Hediye Carki",
     },
     body: JSON.stringify({
-      model: "google/gemma-3-4b-it:free",
+      model: "openrouter/free",
       messages: [
         { role: "system", content: "Sen hediye öneri uzmanısın. Yanıtlarını SADECE geçerli JSON formatında ver." },
         { role: "user", content: prompt },
@@ -96,37 +96,11 @@ const callOpenRouter = async (apiKey, prompt) => {
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err.error?.message || `OpenRouter hatası (${response.status})`);
+    throw new Error(err.error?.message || JSON.stringify(err) || `OpenRouter hatası (${response.status})`);
   }
 
   const result = await response.json();
   return result.choices[0].message.content;
-};
-
-const callGemini = async (apiKey, prompt) => {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.9,
-          maxOutputTokens: 1024,
-          responseMimeType: "application/json",
-        },
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.error?.message || `Gemini hatası (${response.status})`);
-  }
-
-  const result = await response.json();
-  return result.candidates[0].content.parts[0].text;
 };
 
 exports.handler = async (event) => {
@@ -154,19 +128,12 @@ exports.handler = async (event) => {
     return { statusCode: 429, headers, body: JSON.stringify({ error: rateLimitMsg }) };
   }
 
-  const openrouterKey = process.env.OPENROUTER_API_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY;
-
-  if (!openrouterKey && !geminiKey) {
-    const allKeys = Object.keys(process.env).sort().join(", ");
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        error: "API key yapılandırılmamış.",
-        hint: "OPENROUTER_API_KEY veya GEMINI_API_KEY env variable ekleyin.",
-        available_env_keys: allKeys,
-      }),
+      body: JSON.stringify({ error: "API key yapılandırılmamış. Netlify ortam değişkenlerini kontrol edin." }),
     };
   }
 
@@ -188,13 +155,7 @@ exports.handler = async (event) => {
   const prompt = buildPrompt(category, catDesc, yas, cinsiyet, ilgiList, butce, budgetNote, vesile, ekstra);
 
   try {
-    let text;
-    if (openrouterKey) {
-      text = await callOpenRouter(openrouterKey, prompt);
-    } else {
-      text = await callGemini(geminiKey, prompt);
-    }
-
+    const text = await callOpenRouter(apiKey, prompt);
     const clean = text.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(clean);
 
