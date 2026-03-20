@@ -100,7 +100,13 @@ const callOpenRouter = async (apiKey, prompt) => {
   }
 
   const result = await response.json();
-  return result.choices[0].message.content;
+  const content = result.choices?.[0]?.message?.content;
+
+  if (!content) {
+    throw new Error("Model yanıt üretemedi. Lütfen tekrar deneyin.");
+  }
+
+  return content;
 };
 
 exports.handler = async (event) => {
@@ -154,17 +160,21 @@ exports.handler = async (event) => {
 
   const prompt = buildPrompt(category, catDesc, yas, cinsiyet, ilgiList, butce, budgetNote, vesile, ekstra);
 
-  try {
-    const text = await callOpenRouter(apiKey, prompt);
-    const clean = text.replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(clean);
+  const MAX_RETRIES = 2;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const text = await callOpenRouter(apiKey, prompt);
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
 
-    return { statusCode: 200, headers, body: JSON.stringify(parsed) };
-  } catch (err) {
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: err.message || "Sunucu hatası" }),
-    };
+      return { statusCode: 200, headers, body: JSON.stringify(parsed) };
+    } catch (err) {
+      if (attempt < MAX_RETRIES - 1) continue;
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: err.message || "Sunucu hatası" }),
+      };
+    }
   }
 };
