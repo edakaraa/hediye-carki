@@ -74,6 +74,36 @@ SADECE şu JSON formatında yanıt ver, başka hiçbir metin ekleme:
 {"gifts":[{"name":"Hediye adı","why":"Bu kişiye neden uygun (1-2 cümle)","price":"Tahmini fiyat ₺"}]}`;
 };
 
+const callGroq = async (apiKey, prompt) => {
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: "Sen hediye öneri uzmanısın. Yanıtlarını SADECE geçerli JSON formatında ver." },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.9,
+      max_tokens: 1024,
+      response_format: { type: "json_object" },
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error?.message || `Groq hatası (${response.status})`);
+  }
+
+  const result = await response.json();
+  const content = result.choices?.[0]?.message?.content;
+  if (!content) throw new Error("Groq yanıt üretemedi.");
+  return content;
+};
+
 const callOpenRouter = async (apiKey, prompt) => {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -84,7 +114,7 @@ const callOpenRouter = async (apiKey, prompt) => {
       "X-Title": "Hediye Carki",
     },
     body: JSON.stringify({
-      model: "openrouter/free",
+      model: "meta-llama/llama-3.3-70b-instruct:free",
       messages: [
         { role: "system", content: "Sen hediye öneri uzmanısın. Yanıtlarını SADECE geçerli JSON formatında ver." },
         { role: "user", content: prompt },
@@ -96,16 +126,12 @@ const callOpenRouter = async (apiKey, prompt) => {
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err.error?.message || JSON.stringify(err) || `OpenRouter hatası (${response.status})`);
+    throw new Error(err.error?.message || `OpenRouter hatası (${response.status})`);
   }
 
   const result = await response.json();
   const content = result.choices?.[0]?.message?.content;
-
-  if (!content) {
-    throw new Error("Model yanıt üretemedi. Lütfen tekrar deneyin.");
-  }
-
+  if (!content) throw new Error("OpenRouter yanıt üretemedi.");
   return content;
 };
 
@@ -134,8 +160,10 @@ exports.handler = async (event) => {
     return { statusCode: 429, headers, body: JSON.stringify({ error: rateLimitMsg }) };
   }
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
+  const groqKey = process.env.GROQ_API_KEY;
+  const openrouterKey = process.env.OPENROUTER_API_KEY;
+
+  if (!groqKey && !openrouterKey) {
     return {
       statusCode: 500,
       headers,
@@ -160,21 +188,25 @@ exports.handler = async (event) => {
 
   const prompt = buildPrompt(category, catDesc, yas, cinsiyet, ilgiList, butce, budgetNote, vesile, ekstra);
 
-  const MAX_RETRIES = 2;
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+  // Groq birincil, OpenRouter yedek
+  const providers = [];
+  if (groqKey) providers.push({ name: "Groq", fn: () => callGroq(groqKey, prompt) });
+  if (openrouterKey) providers.push({ name: "OpenRouter", fn: () => callOpenRouter(openrouterKey, prompt) });
+
+  for (const provider of providers) {
     try {
-      const text = await callOpenRouter(apiKey, prompt);
+      const text = await provider.fn();
       const clean = text.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean);
-
       return { statusCode: 200, headers, body: JSON.stringify(parsed) };
     } catch (err) {
-      if (attempt < MAX_RETRIES - 1) continue;
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: err.message || "Sunucu hatası" }),
-      };
+      if (provider === providers[providers.length - 1]) {
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({ error: err.message || "Sunucu hatası" }),
+        };
+      }
     }
   }
 };
