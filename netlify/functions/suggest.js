@@ -25,8 +25,8 @@ const BUDGET_MAP = {
   "2500₺+": { min: 2500, max: null },
 };
 
-// Bellek içi rate limiter (IP başına dakikada max 3, günde max 50 istek)
-const MAX_PER_MINUTE = 3;
+// Bellek içi rate limiter (IP başına dakikada max 5, günde max 50 istek)
+const MAX_PER_MINUTE = 5;
 const MAX_PER_DAY = 50;
 const ipMinuteMap = new Map();
 const ipDayMap = new Map();
@@ -139,7 +139,7 @@ SADECE şu JSON formatında yanıt ver, başka hiçbir metin ekleme:
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
