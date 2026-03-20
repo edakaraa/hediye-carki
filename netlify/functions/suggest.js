@@ -25,6 +25,30 @@ const BUDGET_MAP = {
   "2500₺+": { min: 2500, max: null },
 };
 
+// Bellek içi rate limiter (IP başına dakikada max 3, günde max 50 istek)
+const MAX_PER_MINUTE = 3;
+const MAX_PER_DAY = 50;
+const ipMinuteMap = new Map();
+const ipDayMap = new Map();
+
+const isRateLimited = (ip) => {
+  const now = Date.now();
+  const minuteAgo = now - 60_000;
+  const dayAgo = now - 86_400_000;
+
+  const minuteHits = (ipMinuteMap.get(ip) || []).filter((t) => t > minuteAgo);
+  minuteHits.push(now);
+  ipMinuteMap.set(ip, minuteHits);
+
+  const dayHits = (ipDayMap.get(ip) || []).filter((t) => t > dayAgo);
+  dayHits.push(now);
+  ipDayMap.set(ip, dayHits);
+
+  if (minuteHits.length > MAX_PER_MINUTE) return "Çok hızlı gidiyorsun! Lütfen 1 dakika bekle.";
+  if (dayHits.length > MAX_PER_DAY) return "Günlük kullanım limitine ulaştın. Yarın tekrar dene!";
+  return null;
+};
+
 exports.handler = async (event) => {
   const headers = {
     "Content-Type": "application/json",
@@ -41,6 +65,20 @@ exports.handler = async (event) => {
       statusCode: 405,
       headers,
       body: JSON.stringify({ error: "Method not allowed" }),
+    };
+  }
+
+  const clientIp =
+    event.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    event.headers["client-ip"] ||
+    "unknown";
+
+  const rateLimitMsg = isRateLimited(clientIp);
+  if (rateLimitMsg) {
+    return {
+      statusCode: 429,
+      headers,
+      body: JSON.stringify({ error: rateLimitMsg }),
     };
   }
 
