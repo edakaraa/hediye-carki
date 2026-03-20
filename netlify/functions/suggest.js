@@ -44,15 +44,13 @@ exports.handler = async (event) => {
     };
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.log("ENV VARS:", Object.keys(process.env).filter(k => k.includes("ANTHRO")));
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({
         error: "API key yapılandırılmamış. Netlify ortam değişkenlerini kontrol edin.",
-        debug: "ANTHROPIC_API_KEY bulunamadı",
       }),
     };
   }
@@ -102,19 +100,21 @@ SADECE şu JSON formatında yanıt ver, başka hiçbir metin ekleme:
 {"gifts":[{"name":"Hediye adı","why":"Bu kişiye neden uygun (1-2 cümle)","price":"Tahmini fiyat ₺"}]}`;
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.9,
+            maxOutputTokens: 1024,
+            responseMimeType: "application/json",
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
@@ -122,13 +122,13 @@ SADECE şu JSON formatında yanıt ver, başka hiçbir metin ekleme:
         statusCode: response.status,
         headers,
         body: JSON.stringify({
-          error: err.error?.message || `Anthropic API hatası (${response.status})`,
+          error: err.error?.message || `Gemini API hatası (${response.status})`,
         }),
       };
     }
 
     const result = await response.json();
-    const text = result.content[0].text;
+    const text = result.candidates[0].content.parts[0].text;
     const clean = text.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(clean);
 
