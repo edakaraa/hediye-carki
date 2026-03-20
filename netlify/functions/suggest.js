@@ -25,8 +25,7 @@ const BUDGET_MAP = {
   "2500₺+": { min: 2500, max: null },
 };
 
-// Bellek içi rate limiter (IP başına dakikada max 5, günde max 50 istek)
-const MAX_PER_MINUTE = 5;
+const MAX_PER_MINUTE = 3;
 const MAX_PER_DAY = 50;
 const ipMinuteMap = new Map();
 const ipDayMap = new Map();
@@ -82,7 +81,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     return {
       statusCode: 500,
@@ -138,21 +137,27 @@ SADECE şu JSON formatında yanıt ver, başka hiçbir metin ekleme:
 {"gifts":[{"name":"Hediye adı","why":"Bu kişiye neden uygun (1-2 cümle)","price":"Tahmini fiyat ₺"}]}`;
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.9,
-            maxOutputTokens: 1024,
-            responseMimeType: "application/json",
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        "HTTP-Referer": "https://hediye-carki.netlify.app",
+        "X-Title": "Hediye Carki",
+      },
+      body: JSON.stringify({
+        model: "google/gemma-3-4b-it:free",
+        messages: [
+          {
+            role: "system",
+            content: "Sen hediye öneri uzmanısın. Yanıtlarını SADECE geçerli JSON formatında ver.",
           },
-        }),
-      }
-    );
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.9,
+        max_tokens: 1024,
+      }),
+    });
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
@@ -160,13 +165,13 @@ SADECE şu JSON formatında yanıt ver, başka hiçbir metin ekleme:
         statusCode: response.status,
         headers,
         body: JSON.stringify({
-          error: err.error?.message || `Gemini API hatası (${response.status})`,
+          error: err.error?.message || `API hatası (${response.status})`,
         }),
       };
     }
 
     const result = await response.json();
-    const text = result.candidates[0].content.parts[0].text;
+    const text = result.choices[0].message.content;
     const clean = text.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(clean);
 
