@@ -48,71 +48,8 @@ const isRateLimited = (ip) => {
   return null;
 };
 
-exports.handler = async (event) => {
-  const headers = {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
-
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers, body: "" };
-  }
-
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: "Method not allowed" }),
-    };
-  }
-
-  const clientIp =
-    event.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
-    event.headers["client-ip"] ||
-    "unknown";
-
-  const rateLimitMsg = isRateLimited(clientIp);
-  if (rateLimitMsg) {
-    return {
-      statusCode: 429,
-      headers,
-      body: JSON.stringify({ error: rateLimitMsg }),
-    };
-  }
-
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({
-        error: "API key yapılandırılmamış. Netlify ortam değişkenlerini kontrol edin.",
-      }),
-    };
-  }
-
-  let body;
-  try {
-    body = JSON.parse(event.body);
-  } catch {
-    return {
-      statusCode: 400,
-      headers,
-      body: JSON.stringify({ error: "Geçersiz istek" }),
-    };
-  }
-
-  const { yas, cinsiyet, ilgi, butce, vesile, ekstra, category } = body;
-
-  const catDesc = CATEGORY_DESCRIPTIONS[category] || category;
-  const ilgiList = ilgi || "belirtilmedi";
-  const budget = BUDGET_MAP[butce] || {};
-  const budgetNote = budget.max
-    ? `${budget.min}₺ ile ${budget.max}₺ arasında`
-    : `${budget.min || 0}₺ ve üzeri`;
-
-  const prompt = `Sen kişiye özel hediye öneren Türkçe konuşan bir uzmansın.
+const buildPrompt = (category, catDesc, yas, cinsiyet, ilgiList, butce, budgetNote, vesile, ekstra) => {
+  return `Sen kişiye özel hediye öneren Türkçe konuşan bir uzmansın.
 
 ÇARK SONUCU: "${category}" kategorisi seçildi.
 Kategori kapsamı: ${catDesc}
@@ -135,51 +72,133 @@ KURALLAR:
 
 SADECE şu JSON formatında yanıt ver, başka hiçbir metin ekleme:
 {"gifts":[{"name":"Hediye adı","why":"Bu kişiye neden uygun (1-2 cümle)","price":"Tahmini fiyat ₺"}]}`;
+};
+
+const callOpenRouter = async (apiKey, prompt) => {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      "HTTP-Referer": "https://hediye-carki.netlify.app",
+      "X-Title": "Hediye Carki",
+    },
+    body: JSON.stringify({
+      model: "google/gemma-3-4b-it:free",
+      messages: [
+        { role: "system", content: "Sen hediye öneri uzmanısın. Yanıtlarını SADECE geçerli JSON formatında ver." },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.9,
+      max_tokens: 1024,
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error?.message || `OpenRouter hatası (${response.status})`);
+  }
+
+  const result = await response.json();
+  return result.choices[0].message.content;
+};
+
+const callGemini = async (apiKey, prompt) => {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.9,
+          maxOutputTokens: 1024,
+          responseMimeType: "application/json",
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error?.message || `Gemini hatası (${response.status})`);
+  }
+
+  const result = await response.json();
+  return result.candidates[0].content.parts[0].text;
+};
+
+exports.handler = async (event) => {
+  const headers = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 204, headers, body: "" };
+  }
+
+  if (event.httpMethod !== "POST") {
+    return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
+  }
+
+  const clientIp =
+    event.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    event.headers["client-ip"] ||
+    "unknown";
+
+  const rateLimitMsg = isRateLimited(clientIp);
+  if (rateLimitMsg) {
+    return { statusCode: 429, headers, body: JSON.stringify({ error: rateLimitMsg }) };
+  }
+
+  const openrouterKey = process.env.OPENROUTER_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
+
+  if (!openrouterKey && !geminiKey) {
+    const allKeys = Object.keys(process.env).sort().join(", ");
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        error: "API key yapılandırılmamış.",
+        hint: "OPENROUTER_API_KEY veya GEMINI_API_KEY env variable ekleyin.",
+        available_env_keys: allKeys,
+      }),
+    };
+  }
+
+  let body;
+  try {
+    body = JSON.parse(event.body);
+  } catch {
+    return { statusCode: 400, headers, body: JSON.stringify({ error: "Geçersiz istek" }) };
+  }
+
+  const { yas, cinsiyet, ilgi, butce, vesile, ekstra, category } = body;
+  const catDesc = CATEGORY_DESCRIPTIONS[category] || category;
+  const ilgiList = ilgi || "belirtilmedi";
+  const budget = BUDGET_MAP[butce] || {};
+  const budgetNote = budget.max
+    ? `${budget.min}₺ ile ${budget.max}₺ arasında`
+    : `${budget.min || 0}₺ ve üzeri`;
+
+  const prompt = buildPrompt(category, catDesc, yas, cinsiyet, ilgiList, butce, budgetNote, vesile, ekstra);
 
   try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        "HTTP-Referer": "https://hediye-carki.netlify.app",
-        "X-Title": "Hediye Carki",
-      },
-      body: JSON.stringify({
-        model: "google/gemma-3-4b-it:free",
-        messages: [
-          {
-            role: "system",
-            content: "Sen hediye öneri uzmanısın. Yanıtlarını SADECE geçerli JSON formatında ver.",
-          },
-          { role: "user", content: prompt },
-        ],
-        temperature: 0.9,
-        max_tokens: 1024,
-      }),
-    });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      return {
-        statusCode: response.status,
-        headers,
-        body: JSON.stringify({
-          error: err.error?.message || `API hatası (${response.status})`,
-        }),
-      };
+    let text;
+    if (openrouterKey) {
+      text = await callOpenRouter(openrouterKey, prompt);
+    } else {
+      text = await callGemini(geminiKey, prompt);
     }
 
-    const result = await response.json();
-    const text = result.choices[0].message.content;
     const clean = text.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(clean);
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify(parsed),
-    };
+    return { statusCode: 200, headers, body: JSON.stringify(parsed) };
   } catch (err) {
     return {
       statusCode: 500,
