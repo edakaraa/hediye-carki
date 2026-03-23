@@ -210,7 +210,20 @@
     }
   }
 
-  .wheel-pointer { display: none; }
+  .wheel-pointer {
+  display: block;
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  margin-left: -12px; /* Genişliğin yarısı kadar sola çekiyoruz ki tam ortalansın */
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border-radius: 4px; /* Köşeleri hafif yumuşatılmış, modern görünüm */
+  z-index: 10;
+  box-shadow: 0 4px 15px rgba(232, 200, 122, 0.4);
+  transform: rotate(45deg); /* Kareyi 45 derece döndürüp elmas/ok şekli veriyoruz */
+}
   canvas#wheel {
     border-radius: 50%;
     display: block;
@@ -730,7 +743,7 @@ async function startSpin() {
   const arc = (Math.PI * 2) / SEGMENTS.length;
   const targetIdx = Math.floor(Math.random() * SEGMENTS.length);
   const jitter = (Math.random() - 0.5) * arc * 0.6;
-  const desiredRot = -(targetIdx * arc + arc / 2 + jitter) - Math.PI / 2;
+  const desiredRot = -(targetIdx * arc + arc / 2 + jitter);
   const rounds = 5 + Math.floor(Math.random() * 4);
   const targetRot = desiredRot + rounds * Math.PI * 2;
   const duration = 3200 + Math.random() * 800;
@@ -830,7 +843,7 @@ function copyResult() {
   currentGifts.forEach((g, i) => {
     text += `${i+1}. ${g.name} (${g.price})\n   ${g.why}\n\n`;
   });
-  text += `hediyecarki.app ile oluşturuldu ✨`;
+  text += `hediye-carki.netlify.app ile oluşturuldu ✨`;
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.querySelector('.btn-gold');
     btn.textContent = '✓ Kopyalandı!';

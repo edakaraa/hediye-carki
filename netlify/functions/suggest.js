@@ -43,7 +43,7 @@ const isRateLimited = (ip) => {
   dayHits.push(now);
   ipDayMap.set(ip, dayHits);
 
-  if (minuteHits.length > MAX_PER_MINUTE) return "Çok hızlı gidiyorsun! Lütfen 1 dakika bekle.";
+  if (minuteHits.length > MAX_PER_MINUTE) return "Çok kararsızsın gibi... 😵‍💫 Senin için en mükemmel hediyeyi ararken yapay zekamızın biraz başı döndü! Hediye perilerimizin nefes nefese kalmaması için dakikada sadece 5 kez çarkı çevirebiliyoruz. Derin bir nefes al, kısa bir mola ver ve birazdan tekrar dene!";
   if (dayHits.length > MAX_PER_DAY) return "Günlük kullanım limitine ulaştın. Yarın tekrar dene!";
   return null;
 };
