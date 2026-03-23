@@ -776,7 +776,7 @@ async function startSpin() {
 }
 
 async function callAI(data, category) {
-  const resp = await fetch('/.netlify/functions/suggest', {
+  const resp = await fetch('/functions/suggest', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...data, category })
