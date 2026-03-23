@@ -375,23 +375,23 @@ function App() {
 
   return (
     <div
-      className="min-h-screen p-4 sm:p-6 md:p-12 flex flex-col items-center justify-start"
+      className="min-h-screen p-4 sm:p-6 md:p-12 flex flex-col items-center justify-start overflow-x-hidden w-full"
       style={{ background: '#0f0e0c', color: '#f0ece4', fontFamily: "'DM Sans', sans-serif" }}
     >
 
       {/* HEADER */}
-      <header className="w-full max-w-[900px] mb-8 md:mb-[52px]">
-        <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
-          <p className="text-[12px] sm:text-[14px] font-light leading-[1.5] text-center sm:text-left" style={{ color: '#5a5650' }}>
+      <header className="w-full max-w-[900px] mb-8 md:mb-[52px] overflow-hidden">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-between mb-6">
+          <p className="text-[12px] sm:text-[14px] font-light leading-[1.5] text-center sm:text-left w-full sm:w-auto order-1" style={{ color: '#5a5650' }}>
             Future Talent Program 201<br />Yapay Zeka Bitirme Projesi
           </p>
           <div
-            className="px-[14px] py-[5px] rounded-[20px] border text-[11px] font-medium tracking-[0.12em] uppercase"
+            className="px-[14px] py-[5px] rounded-[20px] border text-[11px] font-medium tracking-[0.12em] uppercase order-2"
             style={{ color: '#e8c87a', borderColor: 'rgba(232,200,122,0.3)' }}
           >
             Eda KARA
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 order-3">
             <a
               href="https://www.linkedin.com/in/edakaraa"
               target="_blank"
@@ -490,11 +490,11 @@ function App() {
         </div>
       )}
 
-      <div className="w-full max-w-[900px] grid md:grid-cols-2 gap-6 items-start">
+      <div className="w-full max-w-[900px] grid grid-cols-1 md:grid-cols-2 gap-6 items-start overflow-hidden">
 
         {/* SOL PANEL: Form */}
         <div
-          className="rounded-2xl p-5 sm:p-7 space-y-[18px]"
+          className="rounded-2xl p-5 sm:p-7 space-y-[18px] w-full overflow-hidden"
           style={{ background: '#1a1916', border: '1px solid rgba(255,255,255,0.08)' }}
         >
           <h2
@@ -568,11 +568,11 @@ function App() {
         </div>
 
         {/* SAĞ PANEL: Çark ve Sonuçlar */}
-        <div className="flex flex-col items-center justify-center gap-5 min-h-[300px] md:min-h-[500px] relative">
+        <div className="flex flex-col items-center justify-center gap-5 min-h-[300px] md:min-h-[500px] relative w-full">
 
           {!spinResult && !aiLoading && streamedResponse.length === 0 && (
             <>
-              <div className="relative w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] md:w-[400px] md:h-[400px]">
+              <div className="relative w-full max-w-[400px] aspect-square mx-auto">
                 <svg
                   width="400"
                   height="400"
