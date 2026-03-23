@@ -375,14 +375,14 @@ function App() {
 
   return (
     <div
-      className="min-h-screen p-6 md:p-12 flex flex-col items-center justify-start"
+      className="min-h-screen p-4 sm:p-6 md:p-12 flex flex-col items-center justify-start"
       style={{ background: '#0f0e0c', color: '#f0ece4', fontFamily: "'DM Sans', sans-serif" }}
     >
 
       {/* HEADER */}
-      <header className="w-full max-w-[900px] mb-[52px]">
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-[14px] font-light leading-[1.5]" style={{ color: '#5a5650' }}>
+      <header className="w-full max-w-[900px] mb-8 md:mb-[52px]">
+        <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+          <p className="text-[12px] sm:text-[14px] font-light leading-[1.5] text-center sm:text-left" style={{ color: '#5a5650' }}>
             Future Talent Program 201<br />Yapay Zeka Bitirme Projesi
           </p>
           <div
@@ -391,7 +391,7 @@ function App() {
           >
             Eda KARA
           </div>
-          <div className="flex items-center gap-2 w-[170px]">
+          <div className="flex items-center gap-2">
             <a
               href="https://www.linkedin.com/in/edakaraa"
               target="_blank"
@@ -407,21 +407,6 @@ function App() {
                 <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
               </svg>
             </a>
-            <a
-              href="https://github.com/edakaraa/hediye-carki"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-9 h-9 flex items-center justify-center rounded-full border transition-colors"
-              style={{ borderColor: 'rgba(255,255,255,0.08)', color: '#8a8478' }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#e8c87a'; e.currentTarget.style.borderColor = 'rgba(232,200,122,0.3)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = '#8a8478'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
-              aria-label="GitHub reposunu görüntüle"
-              tabIndex={0}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-              </svg>
-            </a>
             <button
               onClick={() => setShowInfoModal(true)}
               className="w-9 h-9 flex items-center justify-center rounded-full border transition-colors text-sm font-bold"
@@ -435,7 +420,7 @@ function App() {
             </button>
           </div>
         </div>
-        <div className="flex flex-col items-center text-center space-y-[14px]">
+        <div className="flex flex-col items-center text-center space-y-3 md:space-y-[14px]">
         <div
             className="px-[14px] py-[5px] rounded-[20px] border text-[11px] font-medium tracking-[0.12em] uppercase"
             style={{ color: '#e8c87a', borderColor: 'rgba(232,200,122,0.3)' }}
@@ -509,7 +494,7 @@ function App() {
 
         {/* SOL PANEL: Form */}
         <div
-          className="rounded-2xl p-7 space-y-[18px]"
+          className="rounded-2xl p-5 sm:p-7 space-y-[18px]"
           style={{ background: '#1a1916', border: '1px solid rgba(255,255,255,0.08)' }}
         >
           <h2
@@ -583,16 +568,16 @@ function App() {
         </div>
 
         {/* SAĞ PANEL: Çark ve Sonuçlar */}
-        <div className="flex flex-col items-center justify-center gap-5 min-h-[500px] relative">
+        <div className="flex flex-col items-center justify-center gap-5 min-h-[300px] md:min-h-[500px] relative">
 
           {!spinResult && !aiLoading && streamedResponse.length === 0 && (
             <>
-              <div className="relative w-[400px] h-[400px]">
+              <div className="relative w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] md:w-[400px] md:h-[400px]">
                 <svg
                   width="400"
                   height="400"
                   viewBox="0 0 400 400"
-                  className={`transform transition-transform ${isSpinning ? 'duration-[5s] ease-[cubic-bezier(0.2,1,0.3,1)]' : ''}`}
+                  className={`w-full h-full transform transition-transform ${isSpinning ? 'duration-[5s] ease-[cubic-bezier(0.2,1,0.3,1)]' : ''}`}
                   style={{
                     transform: `rotate(${wheelRotation}deg)`,
                     willChange: isSpinning ? 'transform' : 'auto',
@@ -649,25 +634,25 @@ function App() {
                 </svg>
 
                 {/* Çark merkezi */}
-                <div className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-20 pointer-events-none">
-                  <svg width="64" height="64" viewBox="0 0 64 64">
+                <div className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-20 pointer-events-none w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16">
+                  <svg width="100%" height="100%" viewBox="0 0 64 64">
                     <circle cx="32" cy="32" r="30" fill="#0f0e0c" stroke="#e8c87a" strokeWidth="2" />
                     <text x="32" y="32" textAnchor="middle" dominantBaseline="middle" className="text-[22px]">🎁</text>
                   </svg>
                 </div>
-              </div>
 
-              {/* Pointer — çark çemberinin üst kenarına oturur */}
-              <div
-                className="absolute left-[50%] z-30 w-6 h-6 rounded-[4px]"
-                style={{
-                  top: 'calc(50% - 225px)',
-                  marginLeft: '-12px',
-                  background: 'linear-gradient(135deg, #e8c87a, #c9a84c)',
-                  transform: 'rotate(45deg)',
-                  boxShadow: '0 4px 15px rgba(232,200,122,0.4)',
-                }}
-              />
+                {/* Pointer — çark çemberinin üst kenarına oturur */}
+                <div
+                  className="absolute left-[50%] z-30 w-5 h-5 sm:w-6 sm:h-6 rounded-[4px]"
+                  style={{
+                    top: '-12px',
+                    marginLeft: '-10px',
+                    background: 'linear-gradient(135deg, #e8c87a, #c9a84c)',
+                    transform: 'rotate(45deg)',
+                    boxShadow: '0 4px 15px rgba(232,200,122,0.4)',
+                  }}
+                />
+              </div>
               <p className="text-sm font-light" style={{ color: '#8a8478' }}>Bilgileri doldurup çarkı çevir</p>
             </>
           )}
@@ -732,7 +717,7 @@ function App() {
 
       {/* RESULT MODAL — Pop-up */}
       <div
-        className="fixed inset-0 flex items-center justify-center p-5 transition-opacity duration-300"
+        className="fixed inset-0 flex items-center justify-center p-3 sm:p-5 transition-opacity duration-300"
         style={{
           background: 'rgba(15, 14, 12, 0.85)',
           backdropFilter: 'blur(6px)',
@@ -747,7 +732,7 @@ function App() {
       >
         <div
           ref={resultCardRef}
-          className="relative w-full max-w-[650px] max-h-[90vh] overflow-y-auto rounded-2xl p-8 shadow-2xl transition-transform duration-500"
+          className="relative w-full max-w-[650px] max-h-[90vh] overflow-y-auto rounded-2xl p-5 sm:p-8 shadow-2xl transition-transform duration-500"
           style={{
             background: '#1a1916',
             border: '1px solid rgba(232,200,122,0.25)',
@@ -783,7 +768,7 @@ function App() {
             ✦ AI Hediye Önerileri
           </div>
           <div
-            className="text-[28px] font-bold mb-5"
+            className="text-[22px] sm:text-[28px] font-bold mb-4 sm:mb-5"
             style={{ fontFamily: "'Playfair Display', serif", color: '#f0ece4' }}
           >
             {spinResult || '—'}
@@ -809,7 +794,7 @@ function App() {
 
           {/* Hediye kartları grid */}
           {parsedGifts.length > 0 && (
-            <div className="grid grid-cols-2 gap-3 mt-5 max-[500px]:grid-cols-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 sm:mt-5">
               {parsedGifts.map((gift, index) => {
                 const isFirst = index === 0;
                 const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(gift.name)}`;
@@ -817,7 +802,7 @@ function App() {
                 return (
                   <div
                     key={index}
-                    className={`relative rounded-xl p-4 transition-colors ${isFirst ? 'col-span-2 max-[500px]:col-span-1' : ''}`}
+                    className={`relative rounded-xl p-3 sm:p-4 transition-colors ${isFirst ? 'sm:col-span-2' : ''}`}
                     style={{
                       background: isFirst ? 'rgba(232,200,122,0.15)' : '#231f1b',
                       border: isFirst
@@ -903,7 +888,7 @@ function App() {
 
           {/* Alt butonlar */}
           {!aiLoading && parsedGifts.length > 0 && (
-            <div className="flex gap-[10px] mt-6">
+            <div className="flex flex-col sm:flex-row gap-[10px] mt-4 sm:mt-6">
               <button
                 onClick={handleResetAndSpin}
                 className="flex-1 py-[11px] rounded-[10px] border text-[13px] font-normal cursor-pointer transition-all text-center"
