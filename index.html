@@ -89,7 +89,7 @@
     gap: 24px;
     align-items: start;
   }
-  @media (max-width: 680px) {
+  @media (max-width: 768px) {
     .main-grid { grid-template-columns: 1fr; }
   }
 
@@ -133,7 +133,6 @@
   .field input:focus, .field select:focus, .field textarea:focus {
     border-color: rgba(232,200,122,0.5);
   }
-  .field select option { background: #1a1916; }
   .field textarea { resize: none; height: 72px; line-height: 1.5; }
 
   .chips { display: flex; gap: 7px; flex-wrap: wrap; }
@@ -170,8 +169,6 @@
   .budget-btn:hover { border-color: rgba(232,200,122,0.3); color: var(--gold); }
   .budget-btn.active { background: var(--gold-dim); border-color: rgba(232,200,122,0.5); color: var(--gold); }
 
-  .api-field { display: none; }
-
   .spin-btn {
     width: 100%;
     padding: 14px;
@@ -196,38 +193,50 @@
     flex-direction: column;
     align-items: center;
     gap: 20px;
+    justify-content: center;
   }
 
   .wheel-container {
     position: relative;
-    width: 300px;
-    height: 300px;
+    width: 400px; /* Büyütüldü */
+    height: 400px; /* Büyütüldü */
+    border-radius: 50%; /* KARE YANSIMA ÇÖZÜMÜ */
   }
+  
+  @media (max-width: 450px) {
+    .wheel-container {
+        width: 300px;
+        height: 300px;
+    }
+  }
+
   .wheel-pointer { display: none; }
   canvas#wheel {
     border-radius: 50%;
     display: block;
+    width: 100%;
+    height: 100%;
   }
   .wheel-center {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     background: var(--bg);
     border-radius: 50%;
     border: 3px solid var(--gold);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 22px;
     z-index: 5;
     box-shadow: 0 0 20px rgba(232,200,122,0.3);
   }
 
   .wheel-status {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text-muted);
     text-align: center;
     min-height: 20px;
@@ -235,12 +244,25 @@
   }
   .wheel-status.spinning { color: var(--gold); }
 
-  /* Result card */
+  /* Popup (Modal) Result card */
   .result-section {
-    margin-top: 32px;
-    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 14, 12, 0.85);
+    backdrop-filter: blur(6px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
   }
-  .result-section.visible { display: block; }
+  .result-section.visible { 
+    opacity: 1; 
+    pointer-events: auto;
+  }
 
   .result-card {
     background: var(--surface);
@@ -248,7 +270,16 @@
     border-radius: var(--radius);
     padding: 32px;
     position: relative;
-    overflow: hidden;
+    width: 100%;
+    max-width: 650px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    transform: translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .result-section.visible .result-card {
+    transform: translateY(0);
   }
   .result-card::before {
     content: '';
@@ -256,6 +287,24 @@
     top: 0; left: 0; right: 0;
     height: 2px;
     background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  /* Kapatma Butonu */
+  .close-modal-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s;
+    z-index: 10;
+  }
+  .close-modal-btn:hover {
+    color: var(--gold);
   }
 
   .result-winner-label {
@@ -274,14 +323,6 @@
     margin-bottom: 20px;
   }
 
-  .ai-output {
-    font-size: 14px;
-    line-height: 1.8;
-    color: var(--text-muted);
-    font-weight: 300;
-  }
-  .ai-output strong { color: var(--text); font-weight: 500; }
-
   /* Gift suggestions grid */
   .gifts-grid {
     display: grid;
@@ -297,6 +338,7 @@
     border-radius: 12px;
     padding: 16px;
     transition: border-color 0.2s;
+    position: relative; /* Google arama butonu için gerekli */
   }
   .gift-item:first-child {
     grid-column: 1 / -1;
@@ -304,6 +346,29 @@
     background: var(--gold-dim);
   }
   .gift-item:hover { border-color: rgba(232,200,122,0.25); }
+
+  /* Google Arama İkonu */
+  .google-search-link {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 16px;
+    transition: color 0.2s;
+    background: var(--bg);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+  }
+  .google-search-link:hover { 
+    color: var(--gold); 
+    border-color: var(--gold);
+  }
 
   .gift-rank {
     font-size: 10px;
@@ -319,6 +384,7 @@
     font-weight: 500;
     color: var(--text);
     margin-bottom: 4px;
+    padding-right: 24px; /* Arama ikonu ile çakışmaması için */
   }
   .gift-why {
     font-size: 12px;
@@ -372,10 +438,6 @@
   }
   .btn-gold:hover { background: #f0d48a; }
 
-  /* Streaming cursor */
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-  .cursor { display: inline-block; width: 2px; height: 14px; background: var(--gold); margin-left: 2px; vertical-align: middle; animation: blink 0.8s infinite; }
-
   /* Loading dots */
   @keyframes dotPulse { 0%,80%,100%{transform:scale(0.6);opacity:0.3} 40%{transform:scale(1);opacity:1} }
   .dots span { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); margin: 0 3px; animation: dotPulse 1.4s ease-in-out infinite; }
@@ -394,21 +456,13 @@
     border-radius: 2px;
     animation: confettiFall 1.2s ease-out forwards;
     pointer-events: none;
+    z-index: 1001; /* Modal üzerinde görünsün diye */
   }
 
   /* Wheel glow animation */
   @keyframes wheelGlow { 0%,100%{ box-shadow: 0 0 30px rgba(232,200,122,0.15); } 50%{ box-shadow: 0 0 60px rgba(232,200,122,0.35); } }
   .wheel-container.spinning { animation: wheelGlow 0.8s ease-in-out infinite; }
 
-  /* Fade in */
-  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
-  .result-section.visible { animation: fadeUp 0.4s ease-out; }
-  .gift-item { animation: fadeUp 0.3s ease-out both; }
-  .gift-item:nth-child(1){animation-delay:0.1s}
-  .gift-item:nth-child(2){animation-delay:0.2s}
-  .gift-item:nth-child(3){animation-delay:0.3s}
-  .gift-item:nth-child(4){animation-delay:0.4s}
-  .gift-item:nth-child(5){animation-delay:0.5s}
 </style>
 </head>
 <body>
@@ -422,16 +476,8 @@
 
   <div class="main-grid">
 
-    <!-- FORM PANEL -->
     <div class="form-panel">
       <h2>Kişi Bilgileri</h2>
-
-      <div class="api-field">
-        <label>Anthropic API Anahtarı</label>
-        <input type="password" id="apiKey" placeholder="sk-ant-..." />
-        <div class="api-hint">Anahtarın tarayıcında kalır, hiçbir yere gönderilmez.<br>
-          <a href="https://console.anthropic.com" target="_blank" style="color:var(--gold);text-decoration:none">console.anthropic.com</a> adresinden ücretsiz alabilirsin.</div>
-      </div>
 
       <div class="field">
         <label>Yaş Aralığı</label>
@@ -504,21 +550,19 @@
       </button>
     </div>
 
-    <!-- WHEEL PANEL -->
     <div class="wheel-panel">
       <div class="wheel-container" id="wheelContainer">
         <div class="wheel-pointer"></div>
-        <canvas id="wheel" width="300" height="300"></canvas>
-        <div class="wheel-center">🎁</div>
+        <canvas id="wheel" width="400" height="400"></canvas> <div class="wheel-center">🎁</div>
       </div>
       <div class="wheel-status" id="wheelStatus">Bilgileri doldurup çarkı çevir</div>
     </div>
 
   </div>
 
-  <!-- RESULT -->
   <div class="result-section" id="resultSection">
     <div class="result-card" id="resultCard">
+      <button class="close-modal-btn" onclick="closeModal()">×</button>
       <div class="result-winner-label">✦ AI Hediye Önerileri</div>
       <div class="result-category" id="resultCategory">—</div>
       <div class="gifts-grid" id="giftsGrid"></div>
@@ -545,7 +589,8 @@ const SEGMENTS = [
 
 const canvas = document.getElementById('wheel');
 const ctx = canvas.getContext('2d');
-const W = 300, R = 140, CX = 150, CY = 150;
+// Çark boyut değişkenleri güncellendi (W: 400, Radius: 190, Merkez X ve Y: 200)
+const W = 400, R = 190, CX = 200, CY = 200; 
 let rotation = 0;
 let isSpinning = false;
 let currentGifts = [];
@@ -593,28 +638,41 @@ function drawWheel(rot) {
 
     const lines = seg.label.split('\n');
     ctx.fillStyle = isWinner ? '#ffffff' : seg.stroke;
-    ctx.font = isWinner ? '700 12px DM Sans, sans-serif' : '500 11px DM Sans, sans-serif';
+    ctx.font = isWinner ? '700 13px DM Sans, sans-serif' : '500 12px DM Sans, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
     if (lines.length === 1) {
-      ctx.fillText(lines[0], R * 0.62, 0);
+      ctx.fillText(lines[0], R * 0.65, 0);
     } else {
-      ctx.fillText(lines[0], R * 0.62, -7);
-      ctx.fillText(lines[1], R * 0.62, 7);
+      ctx.fillText(lines[0], R * 0.65, -8);
+      ctx.fillText(lines[1], R * 0.65, 8);
     }
 
     ctx.restore();
   });
 
   ctx.beginPath();
-  ctx.arc(CX, CY, 26, 0, Math.PI * 2);
+  ctx.arc(CX, CY, 30, 0, Math.PI * 2);
   ctx.fillStyle = '#0f0e0c';
   ctx.fill();
   ctx.strokeStyle = '#e8c87a';
   ctx.lineWidth = 2;
   ctx.stroke();
 }
+
+// Ekran boyutuna göre canvas'ı ayarlamak istersen (responsive)
+function resizeCanvas() {
+    if(window.innerWidth <= 450) {
+        canvas.style.width = '300px';
+        canvas.style.height = '300px';
+    } else {
+        canvas.style.width = '400px';
+        canvas.style.height = '400px';
+    }
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
 drawWheel(0);
 
@@ -669,15 +727,10 @@ async function startSpin() {
   document.getElementById('resultSection').classList.remove('visible');
   document.getElementById('wheelContainer').classList.add('spinning');
 
-  // Rastgele hedef dilim seç (0..7), o dilimin tam ortasına denk gelen açıyı hesapla
   const arc = (Math.PI * 2) / SEGMENTS.length;
   const targetIdx = Math.floor(Math.random() * SEGMENTS.length);
-  // Dilimin merkezi çark koordinatında: targetIdx * arc + arc/2
-  // Bu merkez üste (saat 12) gelmeli: rotation = -(targetIdx*arc + arc/2) - π/2
-  // + küçük rastgele sapma (dilim içinde farklı bir noktaya düşsün)
   const jitter = (Math.random() - 0.5) * arc * 0.6;
   const desiredRot = -(targetIdx * arc + arc / 2 + jitter) - Math.PI / 2;
-  // Normalize et ve 5-8 tur ekle
   const rounds = 5 + Math.floor(Math.random() * 4);
   const targetRot = desiredRot + rounds * Math.PI * 2;
   const duration = 3200 + Math.random() * 800;
@@ -691,8 +744,6 @@ async function startSpin() {
     document.getElementById('wheelStatus').textContent = `✦ ${seg.label.replace('\n', ' ')} kategorisi seçildi!`;
     document.getElementById('wheelStatus').className = 'wheel-status';
 
-    spawnConfetti();
-
     const categoryName = seg.label.replace('\n', ' ');
     document.getElementById('resultCategory').textContent = categoryName;
     document.getElementById('resultSection').classList.add('visible');
@@ -701,6 +752,7 @@ async function startSpin() {
     try {
       const gifts = await callAI(data, categoryName);
       renderGifts(gifts, seg);
+      spawnConfetti(); // Confetti veriler geldikten sonra patlasın
     } catch(e) {
       document.getElementById('giftsGrid').innerHTML = `<div style="grid-column:1/-1;padding:16px;color:#e87a7a;font-size:13px">Hata: ${e.message}</div>`;
     }
@@ -732,7 +784,12 @@ function renderGifts(gifts, seg) {
   gifts.forEach((g, i) => {
     const div = document.createElement('div');
     div.className = 'gift-item';
+    
+    // Arama Linki Eklendi
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(g.name)}`;
+    
     div.innerHTML = `
+      <a href="${searchUrl}" target="_blank" class="google-search-link" title="Google'da Ara">🔍</a>
       <div class="gift-rank">${i === 0 ? '✦ En İyi Öneri' : `#${i + 1}`}</div>
       <div class="gift-name">${g.name}</div>
       <div class="gift-why">${g.why}</div>
@@ -755,9 +812,14 @@ function spawnConfetti() {
   }
 }
 
-function resetAndSpin() {
+// Modal Kapatma Fonksiyonu
+function closeModal() {
   document.getElementById('resultSection').classList.remove('visible');
-  setTimeout(startSpin, 200);
+}
+
+function resetAndSpin() {
+  closeModal();
+  setTimeout(startSpin, 300);
 }
 
 function copyResult() {
@@ -793,6 +855,13 @@ document.querySelectorAll('#butce .budget-btn').forEach(btn => {
     btn.closest('.budget-row').querySelectorAll('.budget-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
   });
+});
+
+// Modal açıkken dışarıya (boşluğa) tıklanırsa modali kapat
+document.getElementById('resultSection').addEventListener('click', function(e) {
+  if(e.target === this) {
+    closeModal();
+  }
 });
 </script>
 </body>
